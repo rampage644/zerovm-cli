@@ -727,10 +727,11 @@ class ZvShell(object):
         for k, v in self.config['fstab'].iteritems():
             self.nvram_fstab[self.create_manifest_channel(k)] = v
 
-    def create_manifest_channel(self, file_name):
+    def create_manifest_channel(self, file_name, mountpoint=None):
         name = os.path.basename(file_name)
         self.temp_files.append(file_name)
-        devname = '/dev/%s.%s' % (len(self.temp_files), name)
+        devname = '/dev/%s.%s' % (len(self.temp_files), name)\
+            if not mountpoint else mountpoint
         abs_path = os.path.abspath(file_name)
         if not os.path.exists(abs_path):
             fd = open(abs_path, 'wb')
@@ -753,7 +754,10 @@ class ZvShell(object):
                 if m:
                     self.config['env'][m.group(1)] = m.group(2)
                 else:
-                    dev_name = self.create_manifest_channel(arg)
+                    (file_name, mount_point) = (arg.split(',') +
+                                                [None] * 2)[:2]
+                    dev_name = self.create_manifest_channel(file_name,
+                                                            mount_point)
                     self.nvram_reg_files.append(dev_name)
                     untrusted_args.append(dev_name)
             else:
