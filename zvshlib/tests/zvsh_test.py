@@ -216,6 +216,46 @@ verbosity=4
                     assert nvram.dumps() == expected
 
 
+class TestZvShell(object):
+    """
+    Tests for :class:`zvshlib.zvsh.ZvShell`.
+    """
+    program = 'some.nexe'
+    files = ["file%d" % i for i in range(1, 5)]
+
+    @pytest.fixture
+    def temporary_files(self, request):
+        def fin():
+            try:
+                os.remove(self.program)
+            except OSError:
+                pass
+            for file in self.files:
+                try:
+                    os.remove(file)
+                except OSError:
+                    pass
+        request.addfinalizer(fin)
+
+    def test_create_channel_from_arg(self, temporary_files):
+        mount_point = '/dev/mount/file'
+        # construct argv from program and files, prepend them with '@'
+        # append mount point to last file
+        command_line = ' @'.join([self.program] +
+                                 self.files[:-1] +
+                                 ["%s,%s" % (self.files[-1], mount_point)])
+        args = zvsh.ZvArgs()
+        args.parse(command_line.split())
+        shell = zvsh.ZvShell(zvsh.ZvConfig())
+        shell.add_untrusted_args(args.args.command, args.args.cmd_args)
+        # assume stdin/stdout/stderr channels are present
+        assert len(shell.manifest_channels) == 3 + len(self.files)
+        assert shell.manifest_channels[3].split(',')[1] == '/dev/1.file1'
+        assert shell.manifest_channels[4].split(',')[1] == '/dev/2.file2'
+        assert shell.manifest_channels[5].split(',')[1] == '/dev/3.file3'
+        assert shell.manifest_channels[6].split(',')[1] == '/dev/mount/file'
+
+
 def test_create_manifest():
     # Test for :func:`zvhslib.zvsh.create_manifest`.
     working_dir = '/tmp/abc123'
