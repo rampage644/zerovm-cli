@@ -724,7 +724,7 @@ class ZvShell(object):
             self.channel_seq_write_template % (os.path.abspath(self.stderr),
                                                '/dev/stderr')
         ]
-        for k, v in self.config['fstab'].iteritems():
+        for k, v in self.config['fstab'].items():
             self.nvram_fstab[self.create_manifest_channel(k)] = v
 
     def create_manifest_channel(self, file_name, mountpoint=None):
@@ -803,11 +803,11 @@ class ZvShell(object):
              for a in self.nvram_args['args']])
         if len(self.config['env']) > 0:
             nvram += '[env]\n'
-            for k, v in self.config['env'].iteritems():
+            for k, v in self.config['env'].items():
                 nvram += 'name=%s,value=%s\n' % (k, v.replace(',', '\\x2c'))
         if len(self.nvram_fstab) > 0:
             nvram += '[fstab]\n'
-            for channel, mount in self.nvram_fstab.iteritems():
+            for channel, mount in self.nvram_fstab.items():
                 (mp, access) = mount.split()
                 nvram += ('channel=%s,mountpoint=%s,access=%s,removable=no\n'
                           % (channel, mp, access))
@@ -833,7 +833,7 @@ class ZvShell(object):
 
     def create_manifest(self):
         manifest = ''
-        for k, v in self.config['manifest'].iteritems():
+        for k, v in self.config['manifest'].items():
             manifest += '%s = %s\n' % (k, v)
         manifest += 'Program = %s\n' % os.path.abspath(self.program)
         self.manifest_channels.append(self.channel_random_rw_template
